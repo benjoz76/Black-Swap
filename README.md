@@ -73,13 +73,7 @@ The deployed faucet is already configured in the frontend at `0x50C4f7f402f93A64
    ```
 
 4. Transfer BLUSD from the deployer wallet to the newly deployed faucet contract.
-5. Open Black Swap → **Faucet**, paste the faucet contract address, and press **Save**.
-
-Alternatively, put the address in `.env.local` and restart Vite:
-
-```text
-VITE_BLUSD_FAUCET_ADDRESS=0xYOUR_DEPLOYED_FAUCET
-```
+5. Open Black Swap → **Faucet** and claim directly. The deployed address is pinned in the frontend configuration.
 
 ## First pool transaction
 

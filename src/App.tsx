@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { createPublicClient, createWalletClient, custom, formatUnits, getAddress, http, isAddress, parseUnits, zeroAddress, type Address, type Hash } from 'viem'
+import { createPublicClient, createWalletClient, custom, formatUnits, getAddress, http, parseUnits, zeroAddress, type Address, type Hash } from 'viem'
 import { erc20Abi, factoryAbi, faucetAbi, pairAbi, routerAbi } from './abis'
 import { BLUSD_ADDRESS, BLUSD_FAUCET_ADDRESS, FACTORY_ADDRESS, ROUTER_ADDRESS, TOKENS, liteforge, routerAddressFor, tokenBySymbol, type TokenConfig } from './config'
 
@@ -47,7 +47,6 @@ export default function App() {
   const [pair, setPair] = useState<PairState>({ reserveA: 0n, reserveB: 0n, totalSupply: 0n, lpBalance: 0n })
   const [logs, setLogs] = useState<LogEntry[]>(initialLogs)
   const [busy, setBusy] = useState(false)
-  const [faucetAddress, setFaucetAddress] = useState(() => localStorage.getItem('black-swap-faucet') ?? import.meta.env.VITE_BLUSD_FAUCET_ADDRESS ?? BLUSD_FAUCET_ADDRESS)
   const [faucetReady, setFaucetReady] = useState(false)
   const [nextClaimAt, setNextClaimAt] = useState(0)
 
@@ -149,9 +148,9 @@ export default function App() {
 
   useEffect(() => {
     const checkFaucet = async () => {
-      setFaucetReady(false); setNextClaimAt(0); if (!isAddress(faucetAddress)) return
+      setFaucetReady(false); setNextClaimAt(0)
       try {
-        const address = getAddress(faucetAddress)
+        const address = BLUSD_FAUCET_ADDRESS
         const [code, token] = await Promise.all([publicClient.getCode({ address }), publicClient.readContract({ address, abi: faucetAbi, functionName: 'BLUSD' })])
         if (!code || token.toLowerCase() !== BLUSD_ADDRESS.toLowerCase()) return
         setFaucetReady(true)
@@ -159,7 +158,7 @@ export default function App() {
       } catch { setFaucetReady(false) }
     }
     checkFaucet()
-  }, [faucetAddress, account])
+  }, [account])
 
   const walletClient = () => {
     if (!window.ethereum) throw new Error('No wallet provider')
@@ -232,9 +231,9 @@ export default function App() {
   }
 
   const runClaim = async (owner: Address) => {
-    if (!faucetReady || !isAddress(faucetAddress)) throw new Error('Configure the deployed BLUSD faucet first')
+    if (!faucetReady) throw new Error('BLUSD faucet is unavailable')
     if (nextClaimAt > Date.now() / 1000) throw new Error(`Next claim: ${new Date(nextClaimAt * 1000).toLocaleString()}`)
-    await waitForTransaction(await walletClient().writeContract({ account: owner, address: getAddress(faucetAddress), abi: faucetAbi, functionName: 'claim' }), 'Claim 250 BLUSD')
+    await waitForTransaction(await walletClient().writeContract({ account: owner, address: BLUSD_FAUCET_ADDRESS, abi: faucetAbi, functionName: 'claim' }), 'Claim 250 BLUSD')
   }
   const runAction = async () => {
     const owner = await ensureWallet(); if (!owner || busy) return
@@ -249,10 +248,6 @@ export default function App() {
     else { if (symbol === tokenASymbol) setTokenASymbol(tokenBSymbol); setTokenBSymbol(symbol) }
   }
   const reversePair = () => { setTokenASymbol(tokenBSymbol); setTokenBSymbol(tokenASymbol); if (mode === 'add') { setAmountA(amountB); setAmountB(amountA) } }
-  const saveFaucet = () => {
-    if (!isAddress(faucetAddress)) { addLog('Invalid faucet contract address', 'warning'); return }
-    const normalized = getAddress(faucetAddress); localStorage.setItem('black-swap-faucet', normalized); setFaucetAddress(normalized); addLog('Faucet address saved · validating contract')
-  }
   const openWorkbench = (targetMode: Mode) => {
     setMode(targetMode)
     window.requestAnimationFrame(() => document.getElementById('trade')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
@@ -269,7 +264,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="Black Swap home"><span className="brand-mark" aria-hidden="true"><i /><i /></span><span>BLACK/SWAP</span></a>
+        <a className="brand" href="#top" aria-label="Black Swap home"><img className="brand-logo" src="/favicon.svg" alt="" /><span>BLACK/SWAP</span></a>
         <nav aria-label="Primary navigation"><button type="button" onClick={() => openWorkbench('swap')}>Trade</button><button type="button" onClick={() => openWorkbench('add')}>Pool</button><a href="#console">Console</a><a href="https://docs.litvm.com/" target="_blank" rel="noreferrer">Docs</a></nav>
         <div className="network-cluster"><a className="network-status" href={liteforge.blockExplorers.default.url} target="_blank" rel="noreferrer"><span className={`status-dot ${onLitVM ? 'live' : ''}`} /><span>LiteForge</span><b>{onLitVM ? 'online' : 'chain 4441'}</b></a><button className={`wallet-button ${account ? 'connected' : ''}`} type="button" onClick={account ? disconnectWallet : connectWallet}>{account ? <><span>{shortAddress(account)}</span><b>Disconnect</b></> : 'Connect wallet'}</button></div>
       </header>
@@ -282,7 +277,6 @@ export default function App() {
             {mode === 'faucet' ? <div className="faucet-panel">
               <p className="faucet-kicker">BLACK USD / 24H RATE LIMIT</p><h3>Claim exactly 250 BLUSD.</h3><p>The Black Swap faucet serves BLUSD only. Native zkLTC remains available through the official LiteForge faucet.</p>
               <div className="faucet-token-row"><span className="faucet-token-icon">$</span><div><b>BLUSD</b><small>{nextClaimLabel}</small></div><span className={`ready-badge ${faucetReady ? '' : 'pending'}`}>{faucetReady ? '250 / 24H' : 'SETUP'}</span></div>
-              <div className="contract-config"><label htmlFor="faucet-address">Faucet contract</label><div><input id="faucet-address" value={faucetAddress} onChange={(event) => setFaucetAddress(event.target.value)} placeholder="0x... after deployment" /><button type="button" onClick={saveFaucet}>Save</button></div></div>
               <button className="primary-action" type="button" onClick={runAction} disabled={busy || (!!account && onLitVM && !faucetReady)}><span>{actionLabel}</span><span>↗</span></button><a className="secondary-action" href={LITVM_FAUCET_URL} target="_blank" rel="noreferrer"><span>Need zkLTC gas?</span><b>Official faucet ↗</b></a>
             </div> : <>
               <div className="token-input"><div className="input-meta"><span>{mode === 'remove' ? 'LP tokens to burn' : mode === 'add' ? 'First deposit' : 'You pay'}</span><span>Balance {mode === 'remove' ? displayAmount(pair.lpBalance) : displayAmount(balances[tokenA.symbol])}</span></div><div className="amount-row"><input aria-label="Input amount" inputMode="decimal" value={amountA} onChange={(event) => setAmountA(event.target.value)} /><select className="token-select" value={tokenASymbol} onChange={(event) => changeToken('a', event.target.value)} disabled={mode === 'remove'}>{TOKENS.map((token) => <option key={token.symbol}>{token.symbol}</option>)}</select></div><span className="fiat-value">{mode === 'remove' ? `LP balance · ${displayAmount(pair.lpBalance)}` : tokenA.name}</span></div>

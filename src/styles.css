@@ -49,10 +49,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 .brand { display: inline-flex; align-items: center; gap: 12px; width: max-content; font: 700 14px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; }
-.brand-mark { width: 22px; height: 22px; border: 1px solid var(--lime); position: relative; transform: rotate(45deg); }
-.brand-mark i { position: absolute; display: block; background: var(--lime); }
-.brand-mark i:first-child { width: 1px; height: 28px; left: 10px; top: -4px; }
-.brand-mark i:last-child { height: 1px; width: 28px; top: 10px; left: -4px; }
+.brand-logo { width: 30px; height: 30px; display: block; }
 
 nav { display: flex; height: 100%; align-items: stretch; }
 nav a, nav button { padding: 0 18px; display: grid; place-items: center; color: var(--muted); background: transparent; font: 600 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; border: 0; border-left: 1px solid transparent; border-right: 1px solid transparent; cursor: pointer; }
@@ -120,7 +117,7 @@ h2 { font-size: 16px; margin: 0; font-weight: 650; letter-spacing: -.01em; }
 .primary-action:disabled { opacity: .6; cursor: wait; }
 .prototype-note { color: #69717a; margin: 10px 0 0; font: 500 10px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; text-align: center; }
 
-.faucet-panel { min-height: 385px; padding: 32px; border: 1px solid var(--border); background: var(--canvas); }
+.faucet-panel { padding: 32px; border: 1px solid var(--border); background: var(--canvas); }
 .faucet-kicker { margin: 0 0 18px; color: var(--lime) !important; font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; }
 .faucet-panel h3 { max-width: 420px; margin: 0; font-size: clamp(28px, 4vw, 42px); line-height: 1.05; letter-spacing: -.045em; }
 .faucet-panel > p { max-width: 510px; color: var(--muted); font-size: 13px; line-height: 1.65; }
@@ -134,11 +131,6 @@ h2 { font-size: 16px; margin: 0; font-weight: 650; letter-spacing: -.01em; }
 .pending-token { margin-top: 12px; padding: 12px 0; display: flex; justify-content: space-between; border-bottom: 1px dotted var(--border); color: var(--muted); font: 500 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; }
 .pending-token b { color: var(--amber); font-weight: 500; }
 .ready-badge.pending { color: var(--amber); }
-.contract-config { margin: 0 0 16px; }
-.contract-config label { display: block; margin-bottom: 8px; color: var(--muted); font: 500 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; }
-.contract-config > div { display: flex; }
-.contract-config input { min-width: 0; flex: 1; padding: 12px; border: 1px solid var(--border); color: var(--ink); background: var(--surface-2); font: 500 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
-.contract-config button { padding: 0 16px; border: 1px solid var(--border); border-left: 0; color: var(--lime); background: var(--surface-2); cursor: pointer; font: 650 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; }
 .secondary-action { margin-top: 12px; padding: 12px 2px; display: flex; justify-content: space-between; color: var(--muted); font: 500 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
 .secondary-action b { color: var(--cyan); font-weight: 500; }
 .asset-output { font-size: 18px !important; line-height: 1.35 !important; }
@@ -211,9 +203,7 @@ footer .status-copy { color: var(--amber); }
 @media (max-width: 620px) {
   .topbar { height: auto; min-height: 64px; gap: 12px; padding: 12px 16px; }
   .brand { font-size: 12px; }
-  .brand-mark { width: 18px; height: 18px; }
-  .brand-mark i:first-child { left: 8px; height: 23px; }
-  .brand-mark i:last-child { top: 8px; width: 23px; }
+  .brand-logo { width: 26px; height: 26px; }
   .network-status { display: none; }
   .wallet-button { min-height: 36px; padding: 0 12px; font-size: 10px; }
   .wallet-button.connected span { display: none; }
