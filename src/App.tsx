@@ -10,6 +10,7 @@ interface LogEntry {
 }
 
 const LITVM_CHAIN_ID = '0x1159'
+const LITVM_FAUCET_URL = 'https://liteforge.hub.caldera.xyz'
 const LITVM_NETWORK = {
   chainId: LITVM_CHAIN_ID,
   chainName: 'LitVM LiteForge',
@@ -21,7 +22,7 @@ const LITVM_NETWORK = {
 const initialLogs: LogEntry[] = [
   { time: '00:00:01', message: 'Black Swap interface initialized', tone: 'neutral' },
   { time: '00:00:02', message: 'RPC reachable · chain 4441', tone: 'success' },
-  { time: '00:00:02', message: 'Demo pool mLTC / mUSD loaded', tone: 'neutral' },
+  { time: '00:00:02', message: 'Demo pair zkLTC / mUSD loaded', tone: 'neutral' },
 ]
 
 function shortAddress(address: string) {
@@ -151,10 +152,10 @@ export default function App() {
     }
     setBusy(true)
     const labels: Record<Mode, string> = {
-      swap: `Quote locked · ${numericAmount.toFixed(2)} mLTC → ${output.toFixed(2)} mUSD`,
-      add: `Liquidity previewed · ${numericAmount.toFixed(2)} mLTC + ${(numericAmount * 84.22).toFixed(2)} mUSD`,
+      swap: `Quote locked · ${numericAmount.toFixed(2)} zkLTC → ${output.toFixed(2)} mUSD`,
+      add: `Liquidity previewed · ${numericAmount.toFixed(2)} zkLTC + ${(numericAmount * 84.22).toFixed(2)} mUSD`,
       remove: `Withdrawal previewed · ${numericAmount.toFixed(2)} LP shares`,
-      faucet: 'Test token request prepared',
+      faucet: 'Official LiteForge faucet opened',
     }
     addLog(labels[mode])
     await new Promise((resolve) => window.setTimeout(resolve, 700))
@@ -174,7 +175,14 @@ export default function App() {
             ? 'Preview liquidity'
             : mode === 'remove'
               ? 'Preview withdrawal'
-              : 'Request test tokens'
+              : 'Open zkLTC faucet'
+
+  const modeLabels: Record<Mode, string> = {
+    swap: 'Swap',
+    add: 'Add liquidity',
+    remove: 'Remove',
+    faucet: 'Faucet',
+  }
 
   return (
     <div className="app-shell">
@@ -208,7 +216,7 @@ export default function App() {
             <h1 id="page-title">Liquidity,<br /><span>without noise.</span></h1>
           </div>
           <div className="intro-copy">
-            <p>A focused AMM playground for swapping assets, testing pool mechanics, and learning how liquidity moves on Litecoin’s EVM layer.</p>
+            <p>A focused AMM playground for swapping native zkLTC, testing pool mechanics, and learning how liquidity moves on Litecoin’s EVM layer.</p>
             <div className="protocol-line"><span>AMM</span><span>x · y = k</span><span>FEE 0.30%</span></div>
           </div>
         </section>
@@ -233,64 +241,84 @@ export default function App() {
                   aria-selected={mode === item}
                   onClick={() => setMode(item)}
                 >
-                  /{item}
+                  {modeLabels[item]}
                 </button>
               ))}
             </div>
 
-            <div className="token-input">
-              <div className="input-meta"><span>{mode === 'remove' ? 'LP shares' : 'You input'}</span><span>Balance 128.40</span></div>
-              <div className="amount-row">
-                <input aria-label="Input amount" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} />
-                <button type="button" className="token-select">{mode === 'remove' ? 'LP-mLTC/mUSD' : 'mLTC'} <span>⌄</span></button>
+            {mode === 'faucet' ? (
+              <div className="faucet-panel">
+                <p className="faucet-kicker">LITEFORGE TESTNET GAS</p>
+                <h3>Fund your wallet with zkLTC.</h3>
+                <p>Use the official LiteForge faucet to receive native zkLTC for gas and test transactions on chain 4441.</p>
+                <div className="faucet-token-row">
+                  <span className="faucet-token-icon">Ł</span>
+                  <div><b>zkLTC</b><small>Native testnet asset</small></div>
+                  <span className="ready-badge">AVAILABLE</span>
+                </div>
+                <a className="primary-action faucet-action" href={LITVM_FAUCET_URL} target="_blank" rel="noreferrer" onClick={() => addLog('Opening official LiteForge zkLTC faucet', 'success')}>
+                  <span>Open official faucet</span><ExternalLink />
+                </a>
+                <div className="pending-token"><span>mUSD test token</span><b>CONTRACT PENDING</b></div>
+                <p className="prototype-note">The faucet opens LiteForge Hub. Black Swap does not request or custody your funds.</p>
               </div>
-              <span className="fiat-value">≈ ${(numericAmount * 84.22).toFixed(2)}</span>
-            </div>
+            ) : (
+              <>
+                <div className="token-input">
+                  <div className="input-meta"><span>{mode === 'remove' ? 'LP shares' : mode === 'add' ? 'Deposit' : 'You pay'}</span><span>Balance —</span></div>
+                  <div className="amount-row">
+                    <input aria-label="Input amount" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} />
+                    <button type="button" className="token-select">{mode === 'remove' ? 'LP zkLTC/mUSD' : 'zkLTC'} <span>⌄</span></button>
+                  </div>
+                  <span className="fiat-value">Native gas token · LiteForge</span>
+                </div>
 
-            <button className="direction-button" type="button" aria-label="Reverse token direction"><ArrowDown /></button>
+                <button className="direction-button" type="button" aria-label="Reverse token direction"><ArrowDown /></button>
 
-            <div className="token-input output-input">
-              <div className="input-meta"><span>{mode === 'add' ? 'Pair requirement' : 'You receive'}</span><span>Pool liquidity</span></div>
-              <div className="amount-row">
-                <output>{mode === 'remove' ? (numericAmount * 6.41).toFixed(2) : output.toFixed(2)}</output>
-                <button type="button" className="token-select">mUSD <span>⌄</span></button>
-              </div>
-              <span className="fiat-value">1 mLTC = 84.22 mUSD</span>
-            </div>
+                <div className="token-input output-input">
+                  <div className="input-meta"><span>{mode === 'add' ? 'Pair deposit' : mode === 'remove' ? 'Estimated assets' : 'You receive'}</span><span>Demo quote</span></div>
+                  <div className="amount-row">
+                    <output>{mode === 'remove' ? (numericAmount * 6.41).toFixed(2) : output.toFixed(2)}</output>
+                    <button type="button" className="token-select">mUSD <span>⌄</span></button>
+                  </div>
+                  <span className="fiat-value">1 zkLTC = 84.22 mUSD · demo rate</span>
+                </div>
 
-            <div className="execution-details">
-              <div><span>Price impact</span><b className={priceImpact > 1 ? 'warning' : ''}>{priceImpact.toFixed(2)}%</b></div>
-              <div><span>Minimum received</span><b>{(output * (1 - Number(slippage) / 100)).toFixed(2)} mUSD</b></div>
-              <label><span>Slippage tolerance</span><span className="slippage"><input value={slippage} onChange={(event) => setSlippage(event.target.value)} aria-label="Slippage tolerance" />%</span></label>
-            </div>
+                <div className="execution-details">
+                  <div><span>Price impact</span><b className={priceImpact > 1 ? 'warning' : ''}>{priceImpact.toFixed(2)}%</b></div>
+                  <div><span>Minimum received</span><b>{(output * (1 - Number(slippage) / 100)).toFixed(2)} mUSD</b></div>
+                  <label><span>Slippage tolerance</span><span className="slippage"><input value={slippage} onChange={(event) => setSlippage(event.target.value)} aria-label="Slippage tolerance" />%</span></label>
+                </div>
 
-            <button className="primary-action" type="button" onClick={runDemoAction} disabled={busy}>
-              <span>{actionLabel}</span><span aria-hidden="true">↗</span>
-            </button>
-            <p className="prototype-note">UI prototype — no token approval or contract transaction is submitted.</p>
+                <button className="primary-action" type="button" onClick={runDemoAction} disabled={busy}>
+                  <span>{actionLabel}</span><span aria-hidden="true">↗</span>
+                </button>
+                <p className="prototype-note">Preview only — mUSD and Black Swap pool contracts are not deployed yet.</p>
+              </>
+            )}
           </article>
 
           <aside className="telemetry" id="pool">
             <div className="panel-heading">
               <div><span className="panel-index">02</span><h2>Pool telemetry</h2></div>
-              <span className="live-label"><span /> LIVE</span>
+              <span className="live-label demo"><span /> DEMO</span>
             </div>
 
             <div className="pair-heading">
               <div className="pair-symbol"><span>Ł</span><span>$</span></div>
-              <div><h3>mLTC / mUSD</h3><p>0x8b31...A90F</p></div>
+              <div><h3>zkLTC / mUSD</h3><p>CONTRACT PENDING</p></div>
               <a href="https://liteforge.explorer.caldera.xyz" target="_blank" rel="noreferrer" aria-label="Open pool in explorer"><ExternalLink /></a>
             </div>
 
             <div className="metric-grid">
               <div><span>Total liquidity</span><strong>$2.10M</strong><small>+4.28% / 24H</small></div>
               <div><span>24H volume</span><strong>$481K</strong><small>1,284 swaps</small></div>
-              <div><span>mLTC reserve</span><strong>12,480</strong><small>49.8% of pool</small></div>
+              <div><span>zkLTC reserve</span><strong>12,480</strong><small>49.8% of demo pool</small></div>
               <div><span>mUSD reserve</span><strong>1.05M</strong><small>50.2% of pool</small></div>
             </div>
 
-            <div className="reserve-visual" aria-label="Pool reserve ratio: 49.8 percent mLTC and 50.2 percent mUSD">
-              <div><span>49.8%</span><b>mLTC</b></div><div><span>50.2%</span><b>mUSD</b></div>
+            <div className="reserve-visual" aria-label="Demo pool reserve ratio: 49.8 percent zkLTC and 50.2 percent mUSD">
+              <div><span>49.8%</span><b>zkLTC</b></div><div><span>50.2%</span><b>mUSD</b></div>
             </div>
 
             <div className="position-block">
