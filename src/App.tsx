@@ -253,6 +253,10 @@ export default function App() {
     if (!isAddress(faucetAddress)) { addLog('Invalid faucet contract address', 'warning'); return }
     const normalized = getAddress(faucetAddress); localStorage.setItem('black-swap-faucet', normalized); setFaucetAddress(normalized); addLog('Faucet address saved · validating contract')
   }
+  const openWorkbench = (targetMode: Mode) => {
+    setMode(targetMode)
+    window.requestAnimationFrame(() => document.getElementById('trade')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
 
   const actionLabel = !account ? 'Connect wallet' : !onLitVM ? 'Switch to LitVM' : busy ? 'Waiting for wallet…' : mode === 'swap' ? `Swap ${tokenA.symbol} for ${tokenB.symbol}` : mode === 'add' ? 'Add liquidity' : mode === 'remove' ? 'Remove liquidity' : 'Claim 250 BLUSD'
   const modeLabels: Record<Mode, string> = { swap: 'Swap', add: 'Add liquidity', remove: 'Remove', faucet: 'Faucet' }
@@ -266,7 +270,7 @@ export default function App() {
     <div className="app-shell">
       <header className="topbar">
         <a className="brand" href="#top" aria-label="Black Swap home"><span className="brand-mark" aria-hidden="true"><i /><i /></span><span>BLACK/SWAP</span></a>
-        <nav aria-label="Primary navigation"><a href="#trade">Trade</a><a href="#pool">Pool</a><a href="#console">Console</a><a href="https://docs.litvm.com/" target="_blank" rel="noreferrer">Docs</a></nav>
+        <nav aria-label="Primary navigation"><button type="button" onClick={() => openWorkbench('swap')}>Trade</button><button type="button" onClick={() => openWorkbench('add')}>Pool</button><a href="#console">Console</a><a href="https://docs.litvm.com/" target="_blank" rel="noreferrer">Docs</a></nav>
         <div className="network-cluster"><a className="network-status" href={liteforge.blockExplorers.default.url} target="_blank" rel="noreferrer"><span className={`status-dot ${onLitVM ? 'live' : ''}`} /><span>LiteForge</span><b>{onLitVM ? 'online' : 'chain 4441'}</b></a><button className={`wallet-button ${account ? 'connected' : ''}`} type="button" onClick={account ? disconnectWallet : connectWallet}>{account ? <><span>{shortAddress(account)}</span><b>Disconnect</b></> : 'Connect wallet'}</button></div>
       </header>
       <main id="top">
