@@ -2,6 +2,9 @@
 
 Black Swap is a transaction-enabled AMM workbench for the LitVM LiteForge testnet. The interface can create/fund pools, swap assets, add or remove liquidity, claim BLUSD from a separately deployed faucet, and clean up token allowances after execution.
 
+> [!IMPORTANT]
+> Black Swap is a testnet-only project created to contribute to the LitVM ecosystem and to explore, learn, and demonstrate DeFi interactions during the LitVM LiteForge testnet. It is not intended for mainnet use or for assets with real monetary value. When LitVM transitions to mainnet, the public Black Swap testnet deployment will be shut down. This repository will remain available as a record of the builder contribution and testnet development work.
+
 ## Live features
 
 - MetaMask/Rabby-compatible wallet connection and disconnect
