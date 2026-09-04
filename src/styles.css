@@ -64,6 +64,9 @@ nav a:hover { color: var(--ink); border-color: var(--border); background: var(--
 .status-dot.live { background: var(--lime); box-shadow: 0 0 12px color-mix(in srgb, var(--lime) 70%, transparent); }
 .wallet-button { min-height: 38px; padding: 0 16px; color: var(--canvas); background: var(--lime); border: 1px solid var(--lime); border-radius: 3px; cursor: pointer; font: 750 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; }
 .wallet-button:hover { background: transparent; color: var(--lime); }
+.wallet-button.connected { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); background: var(--surface-2); border-color: var(--border); }
+.wallet-button.connected b { color: var(--red); font-size: 9px; font-weight: 650; letter-spacing: .05em; }
+.wallet-button.connected:hover { border-color: var(--red); }
 
 main { max-width: 1440px; margin: 0 auto; padding: 0 32px 64px; }
 .intro { min-height: 330px; padding: 64px 0 56px; display: grid; grid-template-columns: 1.35fr .65fr; gap: 64px; align-items: end; border-bottom: 1px solid var(--border); }
@@ -199,6 +202,7 @@ footer .status-copy { color: var(--amber); }
   .brand-mark i:last-child { top: 8px; width: 23px; }
   .network-status { display: none; }
   .wallet-button { min-height: 36px; padding: 0 12px; font-size: 10px; }
+  .wallet-button.connected span { display: none; }
   main { padding: 0 12px 40px; }
   .intro { padding: 44px 4px 38px; }
   h1 { font-size: clamp(48px, 16vw, 72px); line-height: .86; }

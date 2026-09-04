@@ -52,6 +52,7 @@ function ExternalLink() {
 export default function App() {
   const [mode, setMode] = useState<Mode>('swap')
   const [account, setAccount] = useState('')
+  const [manuallyDisconnected, setManuallyDisconnected] = useState(() => window.sessionStorage.getItem('black-swap-disconnected') === '1')
   const [chainId, setChainId] = useState('')
   const [amount, setAmount] = useState('10')
   const [slippage, setSlippage] = useState('0.5')
@@ -74,17 +75,19 @@ export default function App() {
 
   useEffect(() => {
     if (!window.ethereum) return
-    window.ethereum.request({ method: 'eth_accounts' }).then((value) => {
-      const accounts = value as string[]
-      if (accounts[0]) setAccount(accounts[0])
-    }).catch(() => undefined)
+    if (!manuallyDisconnected) {
+      window.ethereum.request({ method: 'eth_accounts' }).then((value) => {
+        const accounts = value as string[]
+        if (accounts[0]) setAccount(accounts[0])
+      }).catch(() => undefined)
+    }
     window.ethereum.request({ method: 'eth_chainId' }).then((value) => {
       setChainId(value as string)
     }).catch(() => undefined)
 
     const handleAccounts = (...args: unknown[]) => {
       const accounts = args[0] as string[]
-      setAccount(accounts?.[0] ?? '')
+      setAccount(manuallyDisconnected ? '' : accounts?.[0] ?? '')
     }
     const handleChain = (...args: unknown[]) => setChainId(args[0] as string)
     window.ethereum.on?.('accountsChanged', handleAccounts)
@@ -93,7 +96,7 @@ export default function App() {
       window.ethereum?.removeListener?.('accountsChanged', handleAccounts)
       window.ethereum?.removeListener?.('chainChanged', handleChain)
     }
-  }, [])
+  }, [manuallyDisconnected])
 
   const switchToLitVM = async () => {
     if (!window.ethereum) {
@@ -132,6 +135,8 @@ export default function App() {
     try {
       const result = await window.ethereum.request({ method: 'eth_requestAccounts' }) as string[]
       if (result[0]) {
+        window.sessionStorage.removeItem('black-swap-disconnected')
+        setManuallyDisconnected(false)
         setAccount(result[0])
         addLog(`Wallet connected · ${shortAddress(result[0])}`, 'success')
         await switchToLitVM()
@@ -139,6 +144,25 @@ export default function App() {
     } catch {
       addLog('Wallet connection was cancelled', 'warning')
     }
+  }
+
+  const disconnectWallet = async () => {
+    if (!window.ethereum || !account) return
+
+    try {
+      await window.ethereum.request({
+        method: 'wallet_revokePermissions',
+        params: [{ eth_accounts: {} }],
+      })
+    } catch {
+      // Some injected wallets do not implement permission revocation.
+      // Session state still prevents the interface from reconnecting automatically.
+    }
+
+    window.sessionStorage.setItem('black-swap-disconnected', '1')
+    setManuallyDisconnected(true)
+    setAccount('')
+    addLog('Wallet disconnected from Black Swap', 'warning')
   }
 
   const runDemoAction = async () => {
@@ -203,8 +227,13 @@ export default function App() {
             <span>LiteForge</span>
             <b>{onLitVM ? 'online' : 'chain 4441'}</b>
           </a>
-          <button className="wallet-button" type="button" onClick={connectWallet}>
-            {account ? shortAddress(account) : 'Connect wallet'}
+          <button
+            className={`wallet-button ${account ? 'connected' : ''}`}
+            type="button"
+            onClick={account ? disconnectWallet : connectWallet}
+            title={account ? `Disconnect ${account}` : 'Connect wallet'}
+          >
+            {account ? <><span>{shortAddress(account)}</span><b>Disconnect</b></> : 'Connect wallet'}
           </button>
         </div>
       </header>

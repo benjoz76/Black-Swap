@@ -6,6 +6,7 @@ Black Swap is a terminal-inspired AMM interface prototype for the LitVM LiteForg
 
 - Responsive LiteForge Console interface
 - MetaMask/Rabby-compatible wallet connection
+- Wallet disconnect with permission-revocation fallback
 - Automatic LitVM LiteForge network add/switch
 - Familiar DEX flow using the `zkLTC / mUSD` pair
 - Working link to the official LiteForge zkLTC faucet
