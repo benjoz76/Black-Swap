@@ -30,6 +30,7 @@ Every write requires confirmation in the connected wallet. Testnet assets have n
 | Wrapped zkLTC | `0xA13C8Ea8E4084AeEbcdb1B951dEDF2d641567ed0` |
 | DEX Factory | `0x301D649fE86d5CAE665944B3C7942bF9f29B81Ca` |
 | DEX Router | `0xf2CA3a3A42136Fd103346914A37b30f3991315EA` |
+| BLUSD Faucet | `0x50C4f7f402f93A64dc63DBE4EE4F126C98D96051` |
 
 The Factory, Router, and wrapped-native addresses are the source-pinned LiteForge deployment published by Lester Labs. Black Swap is an independent interface and does not own those contracts.
 
@@ -61,7 +62,7 @@ npm run build
 
 ## Deploy and fund the BLUSD faucet
 
-The source is [`contracts/BLUSDFaucet.sol`](contracts/BLUSDFaucet.sol). The claim amount and cooldown cannot be changed by an admin.
+The deployed faucet is already configured in the frontend at `0x50C4f7f402f93A64dc63DBE4EE4F126C98D96051`. The claim amount and cooldown cannot be changed by an admin. It must hold BLUSD before claims can succeed.
 
 1. Open the contract in Remix and compile with Solidity `0.8.20` or newer.
 2. Select **Injected Provider** and confirm LiteForge chain `4441`.

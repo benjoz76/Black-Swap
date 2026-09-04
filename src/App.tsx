@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPublicClient, createWalletClient, custom, formatUnits, getAddress, http, isAddress, parseUnits, zeroAddress, type Address, type Hash } from 'viem'
 import { erc20Abi, factoryAbi, faucetAbi, pairAbi, routerAbi } from './abis'
-import { BLUSD_ADDRESS, FACTORY_ADDRESS, ROUTER_ADDRESS, TOKENS, liteforge, routerAddressFor, tokenBySymbol, type TokenConfig } from './config'
+import { BLUSD_ADDRESS, BLUSD_FAUCET_ADDRESS, FACTORY_ADDRESS, ROUTER_ADDRESS, TOKENS, liteforge, routerAddressFor, tokenBySymbol, type TokenConfig } from './config'
 
 type Mode = 'swap' | 'add' | 'remove' | 'faucet'
 type LogTone = 'neutral' | 'success' | 'warning'
@@ -47,7 +47,7 @@ export default function App() {
   const [pair, setPair] = useState<PairState>({ reserveA: 0n, reserveB: 0n, totalSupply: 0n, lpBalance: 0n })
   const [logs, setLogs] = useState<LogEntry[]>(initialLogs)
   const [busy, setBusy] = useState(false)
-  const [faucetAddress, setFaucetAddress] = useState(() => localStorage.getItem('black-swap-faucet') ?? import.meta.env.VITE_BLUSD_FAUCET_ADDRESS ?? '')
+  const [faucetAddress, setFaucetAddress] = useState(() => localStorage.getItem('black-swap-faucet') ?? import.meta.env.VITE_BLUSD_FAUCET_ADDRESS ?? BLUSD_FAUCET_ADDRESS)
   const [faucetReady, setFaucetReady] = useState(false)
   const [nextClaimAt, setNextClaimAt] = useState(0)
 
