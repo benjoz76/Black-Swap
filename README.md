@@ -1,51 +1,100 @@
 # Black Swap
 
-Black Swap is a terminal-inspired AMM interface prototype for the LitVM LiteForge testnet. It is designed as a learning project for swap, liquidity, wallet, and pool-accounting flows.
+Black Swap is a transaction-enabled AMM workbench for the LitVM LiteForge testnet. The interface can create/fund pools, swap assets, add or remove liquidity, claim BLUSD from a separately deployed faucet, and clean up token allowances after execution.
 
-## Current scope
+## Live features
 
-- Responsive LiteForge Console interface
-- MetaMask/Rabby-compatible wallet connection
-- Wallet disconnect with permission-revocation fallback
+- MetaMask/Rabby-compatible wallet connection and disconnect
 - Automatic LitVM LiteForge network add/switch
-- Familiar DEX flow using the `zkLTC / mUSD` pair
-- Working link to the official LiteForge zkLTC faucet
-- Constant-product quote preview (`x * y = k` with a 0.30% demo fee)
-- Pool telemetry and local transaction console
-- Explicit prototype safeguards: no approval or contract transaction is submitted yet
+- Live balances and direct router quotes
+- Native zkLTC ↔ ERC-20 and ERC-20 ↔ ERC-20 swaps
+- Pool creation through the first add-liquidity transaction
+- Add and remove liquidity
+- Exact-amount approvals instead of unlimited allowances
+- Automatic `approve(router, 0)` cleanup when an allowance remains
+- BLUSD-only faucet with a fixed 250 BLUSD / 24-hour rule
+- On-chain pool reserves, LP supply, and connected-wallet LP balance
 
-## Network
+Every write requires confirmation in the connected wallet. Testnet assets have no monetary value.
+
+## Network and execution contracts
 
 | Field | Value |
 | --- | --- |
 | Network | LitVM LiteForge |
-| Chain ID | `4441` |
+| Chain ID | `4441` (`0x1159`) |
 | Native token | `zkLTC` |
 | RPC | `https://liteforge.rpc.caldera.xyz/http` |
 | Explorer | `https://liteforge.explorer.caldera.xyz` |
-| Faucet | `https://liteforge.hub.caldera.xyz` |
+| Native faucet | `https://liteforge.hub.caldera.xyz` |
+| Wrapped zkLTC | `0xA13C8Ea8E4084AeEbcdb1B951dEDF2d641567ed0` |
+| DEX Factory | `0x301D649fE86d5CAE665944B3C7942bF9f29B81Ca` |
+| DEX Router | `0xf2CA3a3A42136Fd103346914A37b30f3991315EA` |
+
+The Factory, Router, and wrapped-native addresses are the source-pinned LiteForge deployment published by Lester Labs. Black Swap is an independent interface and does not own those contracts.
+
+## Token registry
+
+| Token | Address |
+| --- | --- |
+| BLUSD | `0xd333A14204007b9444739BF0AeF6C0562d919552` |
+| LITIUMDEX | `0xDdD1b31912b700E5962a3676F285e32212c7C035` |
+| MON | `0xa12C18847c41ECE267155ffAe112b8951AbbcA1C` |
+| HYPE | `0xBB3B44EB672650Fb4a1Cf6D9dc5d3b7494F333AB` |
+
+All registered tokens report 18 decimals. MON and HYPE are third-party testnet contracts; inclusion in the selector is not an endorsement or security guarantee.
 
 ## Run locally
 
 ```bash
 npm install
-npm run dev
+npm run dev -- --host 0.0.0.0
 ```
 
-Build the production bundle:
+Open the forwarded Vite port (normally `5173`). The browser must have an injected EVM wallet such as MetaMask or Rabby.
+
+Production check:
 
 ```bash
 npm run build
 ```
 
-## Important
+## Deploy and fund the BLUSD faucet
 
-This repository currently contains an interactive frontend prototype. Pool values, balances, quotes, and positions are demo data. Contract execution is intentionally disabled until audited contract addresses and ABIs are added.
+The source is [`contracts/BLUSDFaucet.sol`](contracts/BLUSDFaucet.sol). The claim amount and cooldown cannot be changed by an admin.
 
-## Planned contract phase
+1. Open the contract in Remix and compile with Solidity `0.8.20` or newer.
+2. Select **Injected Provider** and confirm LiteForge chain `4441`.
+3. Deploy `BLUSDFaucet` using the BLUSD address below as the constructor argument:
 
-1. Deploy the mock `mUSD` ERC-20 token.
-2. Deploy an mUSD test-token faucet (native zkLTC already uses the official LiteForge faucet).
-3. Deploy and test the Black Swap constant-product pool.
-4. Replace demo telemetry with contract reads.
-5. Enable approval, swap, add-liquidity, and remove-liquidity transactions.
+   ```text
+   0xd333A14204007b9444739BF0AeF6C0562d919552
+   ```
+
+4. Transfer BLUSD from the deployer wallet to the newly deployed faucet contract.
+5. Open Black Swap → **Faucet**, paste the faucet contract address, and press **Save**.
+
+Alternatively, put the address in `.env.local` and restart Vite:
+
+```text
+VITE_BLUSD_FAUCET_ADDRESS=0xYOUR_DEPLOYED_FAUCET
+```
+
+## First pool transaction
+
+No registered pair existed in the configured factory when this integration was prepared. Open **Add liquidity**, choose a pair, enter both amounts, and confirm the approval plus add-liquidity transactions. The first deposit creates the pair and defines its starting price. After confirmation, the Swap tab will return a live quote.
+
+Recommended initial pairs:
+
+- `zkLTC / BLUSD`
+- `LITIUMDEX / BLUSD`
+- `MON / BLUSD`
+- `HYPE / BLUSD`
+
+For existing pools, Black Swap automatically calculates the second deposit from the current reserve ratio.
+
+## Approval behavior
+
+ERC-20 inputs are approved only for the requested amount. If the router leaves any allowance after a successful transaction, Black Swap asks for an additional wallet confirmation to revoke it to zero. Native zkLTC does not require approval.
+
+Auto-revoke reduces lingering allowances but does not make unknown token or router contracts inherently safe. Review every wallet confirmation before signing.
